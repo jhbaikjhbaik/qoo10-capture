@@ -14,10 +14,8 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 (async () => {
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
   });
-
-  const today = new Date().toISOString().split('T')[0];
 
   for (const line of lines) {
     const [url, rawName] = line.split('|');
@@ -31,15 +29,17 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
     await page.goto(url.trim(), { waitUntil: 'networkidle2', timeout: 0 });
 
-    // 고정 요소 및 팝업 숨기기
+    // ✅ 팝업 및 고정 배너 제거
     await page.evaluate(() => {
       const hideSelectors = [
         'div.qbanner',
-        'div[style*="position: fixed"]',
+        'div[style*="position:fixed"]',
         'header',
         'footer',
         '.floatingMenu',
         '.app_down_btn_box',
+        '.ReactModal__Overlay',
+        '.ReactModal__Content',
         'div[class*="popup"]',
         'div[class*="event"]',
         'div[class*="alert"]',
@@ -48,13 +48,10 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
         'div[class*="promotionBanner"]',
         'div[class*="shop_alert"]',
         'div[class*="toast"]',
-        'div[class*="shopcart"]',
-        'div[class*="mask"]',
-        '#qa-toast',
-        '.bottom-banner',
-        '#_totop',
-        '#qoo10MobileAppPromoLayer',
-        '#smartBanner'
+        '[id*="popup"]',
+        '[class*="Popup"]',
+        '[class*="Overlay"]',
+        '[style*="z-index: 9999"]'
       ];
       hideSelectors.forEach(selector => {
         document.querySelectorAll(selector).forEach(el => {
@@ -63,6 +60,7 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       });
     });
 
+    // 스크롤 끝까지 내리기
     const scrollDelay = 1500;
     let previousHeight;
     while (true) {
@@ -73,6 +71,7 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       if (currentHeight === previousHeight) break;
     }
 
+    // 스크린샷 분할 캡처
     const screenshots = [];
     let index = 0;
     let offset = 0;
@@ -88,6 +87,7 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       index++;
     }
 
+    // 이미지 이어붙이기
     const imageBuffers = await Promise.all(
       screenshots.map(f => fs.promises.readFile(f))
     );
@@ -114,7 +114,9 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       }
     }).composite(parts);
 
-    const outputPath = path.join(outputDir, `${name}_${today}_최종.png`);
+    const now = new Date();
+    const timestamp = now.toISOString().split('T')[0];
+    const outputPath = path.join(outputDir, `${name}_${timestamp}_최종.png`);
     await finalImage.png().toFile(outputPath);
     console.log(`✅ ${name} 캡처 완료 → ${outputPath}`);
 
