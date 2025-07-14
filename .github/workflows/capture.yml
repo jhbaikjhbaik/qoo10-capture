@@ -1,0 +1,32 @@
+name: Qoo10 Auto Capture
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 매일 오전 11시 (KST 기준)
+  workflow_dispatch:     # 수동 실행 버튼도 활성화됨
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run capture script
+        run: node capture.js
+
+      - name: Upload to Google Drive (rclone)
+        run: |
+          sudo apt-get install -y rclone
+          mkdir -p ~/.config/rclone
+          echo "${{ secrets.RCLONE_CONF }}" > ~/.config/rclone/rclone.conf
+          rclone copy output gdrive:/Qoo10 --create-empty-src-dirs
