@@ -29,23 +29,23 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
     await page.goto(url.trim(), { waitUntil: 'networkidle2', timeout: 0 });
 
+    // 고정 요소 및 팝업 숨기기 (텍스트 기반 포함)
     await page.evaluate(() => {
       const hideSelectors = [
         'div.qbanner',
-        'div[style*="position:fixed"]',
         'div[style*="position: fixed"]',
-        'header', 'footer',
-        '.floatingMenu', '.app_down_btn_box',
+        'header',
+        'footer',
+        '.floatingMenu',
+        '.app_down_btn_box',
         'div[class*="popup"]',
         'div[class*="event"]',
         'div[class*="alert"]',
         'div[class*="modal"]',
         'div[class*="notification"]',
-        'div[class*="promotion"]',
+        'div[class*="promotionBanner"]',
         'div[class*="shop_alert"]',
-        'div[class*="toast"]',
-        'div[class*="layer"]',
-        'div[class*="overlay"]'
+        'div[class*="toast"]'
       ];
 
       hideSelectors.forEach(selector => {
@@ -54,21 +54,22 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
         });
       });
 
-      const popupKeywords = [
-        'セールやクーポン',
-        'ショッピング情報を受け取ろう',
-        '許可',
-        '進む'
+      const popupTexts = [
+        "Qoo10会員はクーポン・ポイント使用と特価商品購入ができます。",
+        "セールやクーポンなどお得なショッピング情報を受け取ろう♪",
+        "進む", "許可", "閉じる",
+        "Qoo10 회원은 쿠폰·포인트 사용과 특가 상품 구매가 가능합니다.",
+        "쇼핑 혜택 정보를 받아보세요"
       ];
 
-      const allDivs = document.querySelectorAll('div');
-      allDivs.forEach(el => {
-        const text = el.innerText || '';
-        if (
-          popupKeywords.some(keyword => text.includes(keyword)) &&
-          getComputedStyle(el).position === 'fixed'
-        ) {
-          el.style.display = 'none';
+      document.querySelectorAll('div').forEach(div => {
+        const text = div.innerText;
+        if (!text) return;
+        for (const phrase of popupTexts) {
+          if (text.includes(phrase)) {
+            div.style.display = 'none';
+            break;
+          }
         }
       });
     });
@@ -133,4 +134,5 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
   }
 
   await browser.close();
-  co
+  console.log('🎉 모든 작업 완료!');
+})();
