@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
+const dayjs = require('dayjs');
 
 const lines = fs.readFileSync('urls.txt', 'utf-8')
   .split('\n')
@@ -14,12 +15,15 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 (async () => {
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
   });
 
   for (const line of lines) {
     const [url, rawName] = line.split('|');
-    const name = rawName.trim().replace(/[\\/:*?"<>|]/g, '_');
+    const baseName = rawName.trim().replace(/[\\/:*?"<>|]/g, '_');
+    const dateStamp = dayjs().format('YYYYMMDD');
+    const name = `${baseName}_${dateStamp}`;
+
     const page = await browser.newPage();
 
     await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)');
@@ -29,17 +33,14 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
     await page.goto(url.trim(), { waitUntil: 'networkidle2', timeout: 0 });
 
-    // ✅ 팝업 및 고정 배너 제거
     await page.evaluate(() => {
       const hideSelectors = [
         'div.qbanner',
-        'div[style*="position:fixed"]',
+        'div[style*="position: fixed"]',
         'header',
         'footer',
         '.floatingMenu',
         '.app_down_btn_box',
-        '.ReactModal__Overlay',
-        '.ReactModal__Content',
         'div[class*="popup"]',
         'div[class*="event"]',
         'div[class*="alert"]',
@@ -48,19 +49,31 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
         'div[class*="promotionBanner"]',
         'div[class*="shop_alert"]',
         'div[class*="toast"]',
-        '[id*="popup"]',
-        '[class*="Popup"]',
-        '[class*="Overlay"]',
-        '[style*="z-index: 9999"]'
+        'div[style*="z-index"][style*="bottom"]',
+        'div[style*="z-index"][style*="top"]',
+        'div[style*="fixed"][style*="z-index"]',
+        'div[style*="fixed"][style*="bottom"]',
+        'div[style*="fixed"][style*="top"]'
       ];
+
       hideSelectors.forEach(selector => {
         document.querySelectorAll(selector).forEach(el => {
           el.style.display = 'none';
         });
       });
+
+      document.querySelectorAll('div').forEach(el => {
+        const style = window.getComputedStyle(el);
+        if (
+          style.position === 'fixed' &&
+          parseInt(style.zIndex) > 100 &&
+          (parseInt(style.width) > 300 || parseInt(style.height) > 100)
+        ) {
+          el.style.display = 'none';
+        }
+      });
     });
 
-    // 스크롤 끝까지 내리기
     const scrollDelay = 1500;
     let previousHeight;
     while (true) {
@@ -71,7 +84,6 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       if (currentHeight === previousHeight) break;
     }
 
-    // 스크린샷 분할 캡처
     const screenshots = [];
     let index = 0;
     let offset = 0;
@@ -87,7 +99,6 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       index++;
     }
 
-    // 이미지 이어붙이기
     const imageBuffers = await Promise.all(
       screenshots.map(f => fs.promises.readFile(f))
     );
@@ -108,22 +119,4 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
     const finalImage = sharp({
       create: {
         width,
-        height: totalHeight,
-        channels: 4,
-        background: '#ffffff'
-      }
-    }).composite(parts);
-
-    const now = new Date();
-    const timestamp = now.toISOString().split('T')[0];
-    const outputPath = path.join(outputDir, `${name}_${timestamp}_최종.png`);
-    await finalImage.png().toFile(outputPath);
-    console.log(`✅ ${name} 캡처 완료 → ${outputPath}`);
-
-    screenshots.forEach(f => fs.unlinkSync(f));
-    await page.close();
-  }
-
-  await browser.close();
-  console.log('🎉 모든 작업 완료!');
-})();
+        height:
