@@ -2,7 +2,6 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
-const dayjs = require('dayjs');
 
 const lines = fs.readFileSync('urls.txt', 'utf-8')
   .split('\n')
@@ -20,10 +19,7 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
   for (const line of lines) {
     const [url, rawName] = line.split('|');
-    const baseName = rawName.trim().replace(/[\\/:*?"<>|]/g, '_');
-    const dateStamp = dayjs().format('YYYYMMDD');
-    const name = `${baseName}_${dateStamp}`;
-
+    const name = rawName.trim().replace(/[\\/:*?"<>|]/g, '_');
     const page = await browser.newPage();
 
     await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)');
@@ -36,24 +32,20 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
     await page.evaluate(() => {
       const hideSelectors = [
         'div.qbanner',
+        'div[style*="position:fixed"]',
         'div[style*="position: fixed"]',
-        'header',
-        'footer',
-        '.floatingMenu',
-        '.app_down_btn_box',
+        'header', 'footer',
+        '.floatingMenu', '.app_down_btn_box',
         'div[class*="popup"]',
         'div[class*="event"]',
         'div[class*="alert"]',
         'div[class*="modal"]',
         'div[class*="notification"]',
-        'div[class*="promotionBanner"]',
+        'div[class*="promotion"]',
         'div[class*="shop_alert"]',
         'div[class*="toast"]',
-        'div[style*="z-index"][style*="bottom"]',
-        'div[style*="z-index"][style*="top"]',
-        'div[style*="fixed"][style*="z-index"]',
-        'div[style*="fixed"][style*="bottom"]',
-        'div[style*="fixed"][style*="top"]'
+        'div[class*="layer"]',
+        'div[class*="overlay"]'
       ];
 
       hideSelectors.forEach(selector => {
@@ -62,12 +54,19 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
         });
       });
 
-      document.querySelectorAll('div').forEach(el => {
-        const style = window.getComputedStyle(el);
+      const popupKeywords = [
+        'セールやクーポン',
+        'ショッピング情報を受け取ろう',
+        '許可',
+        '進む'
+      ];
+
+      const allDivs = document.querySelectorAll('div');
+      allDivs.forEach(el => {
+        const text = el.innerText || '';
         if (
-          style.position === 'fixed' &&
-          parseInt(style.zIndex) > 100 &&
-          (parseInt(style.width) > 300 || parseInt(style.height) > 100)
+          popupKeywords.some(keyword => text.includes(keyword)) &&
+          getComputedStyle(el).position === 'fixed'
         ) {
           el.style.display = 'none';
         }
@@ -119,4 +118,19 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
     const finalImage = sharp({
       create: {
         width,
-        height:
+        height: totalHeight,
+        channels: 4,
+        background: '#ffffff'
+      }
+    }).composite(parts);
+
+    const outputPath = path.join(outputDir, `${name}_최종.png`);
+    await finalImage.png().toFile(outputPath);
+    console.log(`✅ ${name} 캡처 완료 → ${outputPath}`);
+
+    screenshots.forEach(f => fs.unlinkSync(f));
+    await page.close();
+  }
+
+  await browser.close();
+  co
