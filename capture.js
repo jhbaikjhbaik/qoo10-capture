@@ -12,7 +12,10 @@ const outputDir = 'output';
 if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
 (async () => {
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({
+  headless: true,
+  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH
+});
 
   for (const line of lines) {
     const [url, rawName] = line.split('|');
