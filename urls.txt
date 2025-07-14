@@ -1,0 +1,11 @@
+https://m.qoo10.jp/gmkt.inc/Mobile/Bestsellers/Default.aspx|큐텐종합
+https://m.qoo10.jp/gmkt.inc/Mobile/Bestsellers/Default.aspx?group_code=2|뷰티
+https://m.qoo10.jp/gmkt.inc/Mobile/Bestsellers/Default.aspx?group_code=2&category=120000013|베이스메이크업
+https://m.qoo10.jp/gmkt.inc/Mobile/Bestsellers/Default.aspx?group_code=2&category=220000165|파운데이션
+https://m.qoo10.jp/gmkt.inc/Mobile/Bestsellers/Default.aspx?group_code=2&category=220000166|파우더
+https://m.qoo10.jp/gmkt.inc/Mobile/Bestsellers/Default.aspx?group_code=2&category=220000167|하이라이터
+https://m.qoo10.jp/gmkt.inc/Mobile/Bestsellers/Default.aspx?group_code=2&category=220000170|시타지
+https://m.qoo10.jp/gmkt.inc/Mobile/Bestsellers/Default.aspx?group_code=2&category=120000014|포인트메이크업
+https://m.qoo10.jp/gmkt.inc/Mobile/Bestsellers/Default.aspx?group_code=2&category=220000172|아이섀도우
+https://m.qoo10.jp/gmkt.inc/Mobile/Bestsellers/Default.aspx?group_code=2&category=220000176|립메이크업
+https://m.qoo10.jp/gmkt.inc/Mobile/Bestsellers/Default.aspx?group_code=2&category=220000177|치크
