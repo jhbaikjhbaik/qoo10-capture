@@ -3,7 +3,7 @@ name: Qoo10 Auto Capture
 on:
   schedule:
     - cron: '0 2 * * *' # 매일 오전 11시 (KST 기준)
-  workflow_dispatch:     # 수동 실행 버튼 활성화
+  workflow_dispatch:
 
 jobs:
   capture:
@@ -22,7 +22,9 @@ jobs:
         run: npm install
 
       - name: Install Chrome for Puppeteer
-        run: npx puppeteer browsers install chrome
+        run: |
+          npx puppeteer browsers install chrome
+          echo "✅ Chrome 설치 완료"
 
       - name: Run capture script
         env:
@@ -30,4 +32,4 @@ jobs:
         run: node capture.js
 
       - name: Upload to Google Drive (rclone)
-        run: echo "☁️ (옵션) rclone 업로드 명령어는 여기에 추가"
+        run: echo "☁️ 여기에 rclone 업로드 명령어 추가"
