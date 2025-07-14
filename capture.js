@@ -13,9 +13,9 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
 (async () => {
   const browser = await puppeteer.launch({
-  headless: true,
-  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH
-});
+    headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
+  });
 
   for (const line of lines) {
     const [url, rawName] = line.split('|');
@@ -29,30 +29,35 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
     await page.goto(url.trim(), { waitUntil: 'networkidle2', timeout: 0 });
 
-// 고정 요소 + 이벤트 알림 배너 숨기기
-await page.evaluate(() => {
-  const hideSelectors = [
-    'div.qbanner',
-    'div[style*="position: fixed"]',
-    'header',
-    'footer',
-    '.floatingMenu',
-    '.app_down_btn_box',
-    'div[class*="popup"]',
-    'div[class*="event"]',
-    'div[class*="alert"]',
-    'div[class*="modal"]',
-    'div[class*="notification"]',
-    'div[class*="promotionBanner"]',
-    'div[class*="shop_alert"]',
-    'div[class*="toast"]'
-  ];
-  hideSelectors.forEach(selector => {
-    document.querySelectorAll(selector).forEach(el => {
-      el.style.display = 'none';
+    // 고정 요소 및 팝업 숨기기 (이벤트 알림 포함)
+    await page.evaluate(() => {
+      const hideSelectors = [
+        'div.qbanner',
+        'div[style*="position: fixed"]',
+        'header',
+        'footer',
+        '.floatingMenu',
+        '.app_down_btn_box',
+        'div[class*="popup"]',
+        'div[class*="event"]',
+        'div[class*="alert"]',
+        'div[class*="modal"]',
+        'div[class*="notification"]',
+        'div[class*="promotionBanner"]',
+        'div[class*="shop_alert"]',
+        'div[class*="toast"]',
+        'div[class*="inAppPush"]',
+        'div[class*="push"]',
+        'div[class*="banner"]',
+        'div[class*="subscribe"]',
+        'div[class*="permission"]'
+      ];
+      hideSelectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+          el.style.display = 'none';
+        });
+      });
     });
-  });
-});
 
     const scrollDelay = 1500;
     let previousHeight;
