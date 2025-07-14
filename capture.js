@@ -17,6 +17,8 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
   });
 
+  const today = new Date().toISOString().split('T')[0];
+
   for (const line of lines) {
     const [url, rawName] = line.split('|');
     const name = rawName.trim().replace(/[\\/:*?"<>|]/g, '_');
@@ -29,7 +31,7 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
     await page.goto(url.trim(), { waitUntil: 'networkidle2', timeout: 0 });
 
-    // 고정 요소 및 팝업 숨기기 (이벤트 알림 포함)
+    // 고정 요소 및 팝업 숨기기
     await page.evaluate(() => {
       const hideSelectors = [
         'div.qbanner',
@@ -46,11 +48,13 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
         'div[class*="promotionBanner"]',
         'div[class*="shop_alert"]',
         'div[class*="toast"]',
-        'div[class*="inAppPush"]',
-        'div[class*="push"]',
-        'div[class*="banner"]',
-        'div[class*="subscribe"]',
-        'div[class*="permission"]'
+        'div[class*="shopcart"]',
+        'div[class*="mask"]',
+        '#qa-toast',
+        '.bottom-banner',
+        '#_totop',
+        '#qoo10MobileAppPromoLayer',
+        '#smartBanner'
       ];
       hideSelectors.forEach(selector => {
         document.querySelectorAll(selector).forEach(el => {
@@ -110,7 +114,7 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       }
     }).composite(parts);
 
-    const outputPath = path.join(outputDir, `${name}_최종.png`);
+    const outputPath = path.join(outputDir, `${name}_${today}_최종.png`);
     await finalImage.png().toFile(outputPath);
     console.log(`✅ ${name} 캡처 완료 → ${outputPath}`);
 
