@@ -2,7 +2,7 @@ name: Qoo10 Auto Capture
 
 on:
   schedule:
-    - cron: '0 2 * * *' # 매일 오전 11시 (KST)
+    - cron: '0 2 * * *' # 매일 오전 11시 (KST 기준)
   workflow_dispatch:
 
 jobs:
@@ -18,10 +18,8 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install Puppeteer with Chromium
-        run: |
-          npm install puppeteer
-          echo "✅ Puppeteer 및 Chromium 설치 완료"
+      - name: Install dependencies
+        run: npm install
 
       - name: Run capture script
         run: node capture.js
