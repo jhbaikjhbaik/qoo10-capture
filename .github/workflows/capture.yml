@@ -18,8 +18,8 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies cleanly
+        run: npm ci
 
       - name: Run capture script
         run: node capture.js
