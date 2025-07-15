@@ -29,7 +29,10 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
     await page.goto(url.trim(), { waitUntil: 'networkidle2', timeout: 0 });
 
-    // 고정 요소 및 팝업 숨기기 (텍스트 기반 포함)
+    // 📌 팝업 뜨길 기다림
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    // 📌 팝업/광고 제거
     await page.evaluate(() => {
       const hideSelectors = [
         'div.qbanner',
@@ -38,42 +41,43 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
         'footer',
         '.floatingMenu',
         '.app_down_btn_box',
-        'div[class*="popup"]',
-        'div[class*="event"]',
-        'div[class*="alert"]',
-        'div[class*="modal"]',
-        'div[class*="notification"]',
-        'div[class*="promotionBanner"]',
-        'div[class*="shop_alert"]',
-        'div[class*="toast"]'
+        '[class*="popup"]',
+        '[class*="event"]',
+        '[class*="modal"]',
+        '[class*="banner"]',
+        '[class*="notice"]',
+        '[class*="alert"]',
+        '[class*="overlay"]',
+        '[class*="toast"]'
       ];
-
       hideSelectors.forEach(selector => {
         document.querySelectorAll(selector).forEach(el => {
           el.style.display = 'none';
+          el.remove();
         });
       });
 
       const popupTexts = [
-        "Qoo10会員はクーポン・ポイント使用と特価商品購入ができます。",
-        "セールやクーポンなどお得なショッピング情報を受け取ろう♪",
-        "進む", "許可", "閉じる",
-        "Qoo10 회원은 쿠폰·포인트 사용과 특가 상품 구매가 가능합니다.",
-        "쇼핑 혜택 정보를 받아보세요"
+        "Qoo10会員はクーポン",
+        "セールやクーポン",
+        "쇼핑 혜택 정보를 받아보세요",
+        "Qoo10 회원은 쿠폰",
+        "닫기", "閉じる", "나중에"
       ];
-
       document.querySelectorAll('div').forEach(div => {
         const text = div.innerText;
         if (!text) return;
         for (const phrase of popupTexts) {
           if (text.includes(phrase)) {
             div.style.display = 'none';
+            div.remove();
             break;
           }
         }
       });
     });
 
+    // 📌 스크롤 다운
     const scrollDelay = 1500;
     let previousHeight;
     while (true) {
@@ -84,6 +88,7 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       if (currentHeight === previousHeight) break;
     }
 
+    // 📌 전체 스크린샷 분할 캡처
     const screenshots = [];
     let index = 0;
     let offset = 0;
@@ -99,6 +104,7 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       index++;
     }
 
+    // 📌 이미지 합치기
     const imageBuffers = await Promise.all(
       screenshots.map(f => fs.promises.readFile(f))
     );
