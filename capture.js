@@ -12,10 +12,7 @@ const outputDir = 'output';
 if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
 (async () => {
-  const browser = await puppeteer.launch({
-  headless: true
-});
-
+  const browser = await puppeteer.launch({ headless: true }); // ✅ 경로 지정 없이 기본 실행
 
   for (const line of lines) {
     const [url, rawName] = line.split('|');
@@ -29,26 +26,13 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
     await page.goto(url.trim(), { waitUntil: 'networkidle2', timeout: 0 });
 
-    // 📌 팝업 뜨길 기다림
+    // 📌 팝업 대기 후 제거
     await new Promise(resolve => setTimeout(resolve, 5000));
-
-    // 📌 팝업/광고 제거
     await page.evaluate(() => {
       const hideSelectors = [
-        'div.qbanner',
-        'div[style*="position: fixed"]',
-        'header',
-        'footer',
-        '.floatingMenu',
-        '.app_down_btn_box',
-        '[class*="popup"]',
-        '[class*="event"]',
-        '[class*="modal"]',
-        '[class*="banner"]',
-        '[class*="notice"]',
-        '[class*="alert"]',
-        '[class*="overlay"]',
-        '[class*="toast"]'
+        'div.qbanner', 'header', 'footer', '.floatingMenu', '.app_down_btn_box',
+        '[class*="popup"]', '[class*="event"]', '[class*="modal"]', '[class*="banner"]',
+        '[class*="notice"]', '[class*="alert"]', '[class*="overlay"]', '[class*="toast"]'
       ];
       hideSelectors.forEach(selector => {
         document.querySelectorAll(selector).forEach(el => {
@@ -58,11 +42,8 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       });
 
       const popupTexts = [
-        "Qoo10会員はクーポン",
-        "セールやクーポン",
-        "쇼핑 혜택 정보를 받아보세요",
-        "Qoo10 회원은 쿠폰",
-        "닫기", "閉じる", "나중에"
+        "Qoo10会員はクーポン", "セールやクーポン", "쇼핑 혜택 정보를 받아보세요",
+        "Qoo10 회원은 쿠폰", "닫기", "閉じる", "나중에"
       ];
       document.querySelectorAll('div').forEach(div => {
         const text = div.innerText;
@@ -77,7 +58,7 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       });
     });
 
-    // 📌 스크롤 다운
+    // 📌 전체 스크롤
     const scrollDelay = 1500;
     let previousHeight;
     while (true) {
@@ -88,7 +69,7 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       if (currentHeight === previousHeight) break;
     }
 
-    // 📌 전체 스크린샷 분할 캡처
+    // 📌 전체 화면 캡처 후 합치기
     const screenshots = [];
     let index = 0;
     let offset = 0;
@@ -104,7 +85,6 @@ if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
       index++;
     }
 
-    // 📌 이미지 합치기
     const imageBuffers = await Promise.all(
       screenshots.map(f => fs.promises.readFile(f))
     );
