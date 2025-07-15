@@ -21,8 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install Chromium for Puppeteer
+        run: npx puppeteer browsers install chrome
+
       - name: Run capture script
         run: node capture.js
-
-      - name: Upload to Google Drive (rclone)
-        run: echo "☁️ 업로드 설정 전"
