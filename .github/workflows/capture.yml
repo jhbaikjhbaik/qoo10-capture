@@ -18,21 +18,38 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install system dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y wget gnupg unzip xvfb libatk-bridge2.0-0 libgtk-3-0 libxss1 libasound2 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 libgbm1
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Download Chromium
+      - name: Install Ubuntu libraries for Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libasound2 \
+            libatk-bridge2.0-0 \
+            libatk1.0-0 \
+            libcups2 \
+            libdbus-1-3 \
+            libdrm2 \
+            libgbm1 \
+            libgtk-3-0 \
+            libnspr4 \
+            libnss3 \
+            libx11-xcb1 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxrandr2 \
+            xdg-utils \
+            wget \
+            unzip
+
+      - name: Download and unzip Chromium
         run: |
           wget https://storage.googleapis.com/chromium-browser-snapshots/Linux_x64/1091656/chrome-linux.zip
           unzip chrome-linux.zip
-          chmod +x chrome-linux/chrome
-
-      - name: Install Node dependencies
-        run: npm ci
+          mv chrome-linux chromium
 
       - name: Run capture script
         env:
-          PUPPETEER_EXECUTABLE_PATH: ${{ github.workspace }}/chrome-linux/chrome
+          PUPPETEER_EXECUTABLE_PATH: ${{ github.workspace }}/chromium/chrome
         run: node capture.js
