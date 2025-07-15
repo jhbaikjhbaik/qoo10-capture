@@ -2,7 +2,7 @@ name: Qoo10 Auto Capture
 
 on:
   schedule:
-    - cron: '0 2 * * *' # 매일 오전 11시 (KST 기준)
+    - cron: '0 2 * * *' # 매일 오전 11시 (KST)
   workflow_dispatch:
 
 jobs:
