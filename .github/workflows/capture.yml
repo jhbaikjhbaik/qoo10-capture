@@ -2,7 +2,7 @@ name: Qoo10 Auto Capture
 
 on:
   schedule:
-    - cron: '0 2 * * *' # 매일 오전 11시 (KST)
+    - cron: '0 2 * * *'
   workflow_dispatch:
 
 jobs:
@@ -18,8 +18,21 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install dependencies cleanly
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y wget gnupg unzip xvfb libatk-bridge2.0-0 libgtk-3-0 libxss1 libasound2 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 libgbm1
+
+      - name: Download Chromium
+        run: |
+          wget https://storage.googleapis.com/chromium-browser-snapshots/Linux_x64/1091656/chrome-linux.zip
+          unzip chrome-linux.zip
+          chmod +x chrome-linux/chrome
+
+      - name: Install Node dependencies
         run: npm ci
 
       - name: Run capture script
+        env:
+          PUPPETEER_EXECUTABLE_PATH: ${{ github.workspace }}/chrome-linux/chrome
         run: node capture.js
