@@ -21,14 +21,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install system Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-
       - name: Run capture script
-        env:
-          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
         run: node capture.js
 
       - name: Upload to Google Drive (rclone)
