@@ -48,6 +48,8 @@ jobs:
           wget https://storage.googleapis.com/chromium-browser-snapshots/Linux_x64/1091656/chrome-linux.zip
           unzip chrome-linux.zip
           mv chrome-linux chromium
+          chmod +x chromium/chrome
+
 
       - name: Run capture script
         env:
